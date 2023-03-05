@@ -1,0 +1,182 @@
+<!doctype html>
+<style>
+    td {
+        text-align:center;
+        font-size : 28px;
+    }
+    .centered {
+        display : flex;
+        justify-content : center;
+    }
+    .row {
+        padding-bottom : 20px;
+    }
+</style>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Target URLS</title>
+  </head>
+  <body>
+    <div class="content">
+        <div class="row centered">
+            <h1 class="centered"> Manage your TARGET URLS here</h3>
+        </div>
+        <div class="row centered">
+            
+            <table>
+                <thead>
+                    <tr>
+                        <td>
+                            URL
+                        </td>
+                        <td>
+                            Action
+                        </td>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                    {%for target in targets%}
+                    <tr>
+                        <td>
+                            <a href="{{target}}">
+                                {{target}}
+                            </a>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" onclick="Edit(this)">Edit</button>
+                            <button class="btn btn-primary" onclick="Remove(this)">Remove</button>
+                        </td>
+                    </tr>
+                    {%endfor%}
+                    <tr>
+                        <td colspan="2">
+                            <button class="btn btn-primary" onclick="Add(this)">Add</button>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  </body>
+</html>
+<script>
+    var onAdd = true;
+    var origin_url = "";
+    function Add(src){
+        origin_url = "";
+        src.parentElement.innerHTML = `
+        <td>
+            <input id="newTarget" onchange="saveTarget()">
+        </td>
+        <td>
+            <button class="btn btn-primary" onclick="saveTarget()">Save</button>
+        </td>`;
+       
+
+    }
+
+    function Edit(src){
+        console.log(src.parentElement);
+        href = src.parentElement.parentElement.children[0].children[0].innerHTML;
+        origin_url = href.trim();
+        src.parentElement.parentElement.innerHTML = `
+        <td>
+            <input id="newTarget" onchange="saveTarget()" value=` + href + `>
+        </td>
+        <td>
+            <button class="btn btn-primary" onclick="saveTarget()">Save</button>
+        </td>`;
+        
+    }
+
+    function Remove(src){
+        target = src.parentElement.parentElement.children[0].children[0].innerHTML;
+        fetch('http://localhost:5000/removeTarget', {
+            method: 'POST',
+            mode : 'cors',
+            body:  JSON.stringify({'target_url' : target.trim(), }),
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            }
+        }).then(response => response.json()).then(res => 
+        {
+            result = res.data;
+            redraw(result['targets']);
+        });
+    }
+
+
+
+    function saveTarget(src){
+        target = $('#newTarget').val();
+        if(origin_url == ""){
+        fetch('http://localhost:5000/addTarget', {
+            method: 'POST',
+            mode : 'cors',
+            body:  JSON.stringify({'target_url' : target, }),
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            }
+        }).then(response => response.json()).then(res => 
+        {
+            
+            result = res.data;
+            redraw(result['targets']);
+           
+        });
+    }
+    else{
+        fetch('http://localhost:5000/updateTarget', {
+            method: 'POST',
+            mode : 'cors',
+            body:  JSON.stringify({'target_url' : target, 'origin_url' : origin_url}),
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            }
+        }).then(response => response.json()).then(res => 
+        {
+            
+            result = res.data;
+            redraw(result['targets']);
+           
+        });
+    }
+    }
+
+    function redraw(targets)
+    {
+        let html = "";
+        targets.forEach(target => {
+            html += `
+            <tr>
+                <td>
+                    <a href=` + target+`>
+                        `+ target + `
+                    </a>
+                </td>
+                <td>
+                    <button class="btn btn-primary" onclick="Edit(this)">Edit</button>
+                    <button class="btn btn-primary" onclick="Remove(this)">Remove</button>
+                </td>
+            </tr>
+            `;
+        });
+        html += `<tr>
+            <td colspan="2">
+                <button class="btn btn-primary" onclick="Add(this)">Add</button>
+        </tr>`;
+        $('#tbody').html(html);
+    }
+</script>

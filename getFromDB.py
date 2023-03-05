@@ -6,11 +6,12 @@ from pymongo import errors
 # sshtunnel.SSH_TIMEOUT = 5.0
 # sshtunnel.TUNNEL_TIMEOUT = 5.0
 
-
+# mongo_url = "mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority"
+mongo_url = "mongodb://localhost:27017"
 
 #def insertDocument(server,results):
 def insertDocument(results):
-    client = pymongo.MongoClient("mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority")
+    client = pymongo.MongoClient(mongo_url)
     db_list = client.list_database_names()
     if(not 'URLS' in db_list):
         db = client['URLS']
@@ -36,7 +37,7 @@ def getDocument(keyword):
     
     
     #client = MongoClient(host='127.0.0.1',port=server.local_bind_port,username='zach',password='zach') # server.local_bind_port is assigned local port
-    client = pymongo.MongoClient("mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority")
+    client = pymongo.MongoClient(mongo_url)
     db = client.URLS
     #print(client.list_database_names())
     collection = db.URLS
@@ -63,7 +64,7 @@ def getDocument(keyword):
 
 def getAllHrefs():
     print("---Getting Existing URLS From DB---")
-    client = pymongo.MongoClient("mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority")
+    client = pymongo.MongoClient(mongo_url)
     db = client.URLS
     #print(client.list_database_names())
     collection = db.URLS
@@ -75,9 +76,9 @@ def getAllHrefs():
         hrefs.append(doc['link'])
     return hrefs
 
-def insertTargetUrl(target_urls):
+def insertTargetUrl(target_url):
     print("Adding TargetUrls")
-    client = pymongo.MongoClient("mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority")
+    client = pymongo.MongoClient(mongo_url)
     db = client.URLS
     db_list = client.list_database_names()
     if(not 'URLS' in db_list):
@@ -89,40 +90,62 @@ def insertTargetUrl(target_urls):
         collection = db['TARGETS']
     else:
         collection = db.TARGETS
-    if(len(target_urls) > 0):
-        try:
-            collection.insert_many(target_urls,ordered=False)
-        except errors.BulkWriteError as e:
-            print(e)
+    try:
+        collection.insert_one({'link':target_url})
+    except errors.BulkWriteError as e:
+        print(e)
     print("Successfully inserted target urls into Database")
+    
+def updateTargetUrl(target_url,origin_url):
+    print("Adding TargetUrls")
+    client = pymongo.MongoClient(mongo_url)
+    db = client.URLS
+    db_list = client.list_database_names()
+    if(not 'URLS' in db_list):
+        db = client['URLS']
+    else:
+        db = client.URLS
+    collection_list = db.list_collection_names()
+    if(not 'TARGETS' in collection_list):
+        collection = db['TARGETS']
+    else:
+        collection = db.TARGETS
+    print(origin_url)
+    print(target_url)
+    try:
+        collection.update_one({'link' : origin_url},{"$set" : {'link' : target_url}})
+    except errors.BulkWriteError as e:
+        print(e)
+    print("Successfully updated target urls into Database")
     
 def getAllTargets():
     print("---Getting Existing URLS From DB---")
-    client = pymongo.MongoClient("mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority")
+    client = pymongo.MongoClient(mongo_url)
     db = client.URLS
     #print(client.list_database_names())
     collection = db.TARGETS
     #print(db.list_collection_names())
-    result = collection.find({},{'url' : 1})
+    result = collection.find({},{'link' : 1})
     print("--Collecting complete---")
     targets = []
     for doc in result:
+        print(doc)
         targets.append(doc['link'])
     return targets
 
 def removeTargetUrl(target_url):
     print("---Getting Existing URLS From DB---")
-    client = pymongo.MongoClient("mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority")
+    client = pymongo.MongoClient(mongo_url)
     db = client.URLS
     #print(client.list_database_names())
     collection = db.TARGETS
     
-    collection.delete_one({'url':target_url})
+    collection.delete_one({'link':target_url})
     print("---Successfully removed---")
-    result = collection.find({},{'url' : 1})
+    result = collection.find({},{'link' : 1})
     print("--Collecting complete---")
     targets = []
     for doc in result:
         targets.append(doc['link'])
-    return targets
+    return True
     

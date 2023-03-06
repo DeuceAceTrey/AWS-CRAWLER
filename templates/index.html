@@ -74,6 +74,8 @@
 <script>
     var onAdd = true;
     var origin_url = "";
+    //const post_url = "http://localhost:5000/";
+    const post_url = "http://34.201.12.30/";
     function Add(src){
         origin_url = "";
         src.parentElement.innerHTML = `
@@ -103,7 +105,7 @@
 
     function Remove(src){
         target = src.parentElement.parentElement.children[0].children[0].innerHTML;
-        fetch('http://localhost:5000/removeTarget', {
+        fetch(post_url + 'removeTarget', {
             method: 'POST',
             mode : 'cors',
             body:  JSON.stringify({'target_url' : target.trim(), }),
@@ -122,7 +124,7 @@
     function saveTarget(src){
         target = $('#newTarget').val();
         if(origin_url == ""){
-        fetch('http://localhost:5000/addTarget', {
+        fetch(post_url + 'addTarget', {
             method: 'POST',
             mode : 'cors',
             body:  JSON.stringify({'target_url' : target, }),
@@ -138,7 +140,7 @@
         });
     }
     else{
-        fetch('http://localhost:5000/updateTarget', {
+        fetch(post_url + 'updateTarget', {
             method: 'POST',
             mode : 'cors',
             body:  JSON.stringify({'target_url' : target, 'origin_url' : origin_url}),

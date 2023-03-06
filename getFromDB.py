@@ -6,8 +6,8 @@ from pymongo import errors
 # sshtunnel.SSH_TIMEOUT = 5.0
 # sshtunnel.TUNNEL_TIMEOUT = 5.0
 
-# mongo_url = "mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority"
-mongo_url = "mongodb://localhost:27017"
+mongo_url = "mongodb+srv://zachfeatherstone:f7z98knk4ecjd@cluster0.a0qxm9l.mongodb.net/?retryWrites=true&w=majority"
+#mongo_url = "mongodb://localhost:27017"
 
 #def insertDocument(server,results):
 def insertDocument(results):
